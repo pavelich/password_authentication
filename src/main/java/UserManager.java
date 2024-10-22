@@ -7,13 +7,12 @@ public class UserManager {
 
     public UserManager() {
         users = new HashMap<>();
-        loadUsers();
     }
 
     public void addUser(String username) {
         if (!users.containsKey(username)) {
             users.put(username, new User(username));
-            saveUsers();
+            saveUsers("");
         }
     }
 
@@ -21,7 +20,7 @@ public class UserManager {
         User user = users.get(username);
         if (user != null) {
             user.setPassword(newPassword);
-            saveUsers();
+            saveUsers("");
         }
     }
 
@@ -37,7 +36,7 @@ public class UserManager {
         User user = users.get(username);
         if (user != null) {
             user.setBlocked(true);
-            saveUsers();
+            saveUsers("");
         }
     }
 
@@ -45,7 +44,7 @@ public class UserManager {
         User user = users.get(username);
         if (user != null) {
             user.setBlocked(false);
-            saveUsers();
+            saveUsers("");
         }
     }
 
@@ -53,25 +52,48 @@ public class UserManager {
         User user = users.get(username);
         if (user != null) {
             user.setPasswordRestrictions(hasRestrictions);
-            saveUsers();
+            saveUsers("");
         }
     }
 
-    public void saveUsers() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
+    public void saveUsers(String passphrase) {
+        try {
+            StringBuilder data = new StringBuilder();
             for (User user : users.values()) {
-                writer.write(user.getUsername() + "," + user.getPassword() + "," + user.isBlocked() + "," + user.hasPasswordRestrictions());
-                writer.newLine();
+                data.append(user.getUsername()).append(",")
+                        .append(user.getPassword()).append(",")
+                        .append(user.isBlocked()).append(",")
+                        .append(user.hasPasswordRestrictions()).append("\n");
             }
-        } catch (IOException e) {
+            if (!passphrase.isEmpty()) {
+                CryptoUtil.encrypt(data.toString(), FILE_NAME, passphrase);
+            } else {
+                try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME))) {
+                    writer.print(data.toString());
+                }
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void loadUsers() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
+    public void loadUsers(String passphrase) throws Exception {
+        File userFile = new File(FILE_NAME);
+        if (!userFile.exists()) {
+            System.out.println("User file not found. Creating ADMIN user.");
+            addUser("ADMIN");
+            saveUsers("");
+            return;
+        }
+
+
+        try {
+            String decryptedData = CryptoUtil.decrypt(FILE_NAME, passphrase);
+            if (decryptedData.trim().isEmpty()) {
+                throw new IOException("Decrypted data is empty!");
+            }
+            String[] lines = decryptedData.split("\n");
+            for (String line : lines) {
                 String[] parts = line.split(",");
                 if (parts.length == 4) {
                     String username = parts[0];
@@ -79,13 +101,12 @@ public class UserManager {
                     boolean isBlocked = Boolean.parseBoolean(parts[2]);
                     boolean hasRestrictions = Boolean.parseBoolean(parts[3]);
                     users.put(username, new User(username, password, isBlocked, hasRestrictions));
+                    System.out.println("Loaded user: " + username); // Debug line
                 }
             }
-        } catch (FileNotFoundException e) {
-            addUser("ADMIN"); // Добавляем администратора с пустым паролем
-            saveUsers();
         } catch (IOException e) {
             e.printStackTrace();
+            throw new Exception("Failed to load users.");
         }
     }
 }

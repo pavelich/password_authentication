@@ -1,5 +1,4 @@
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -7,47 +6,62 @@ public class UserUI {
     private JFrame userFrame;
     private UserManager userManager;
     private String username;
+    private String password;
 
-    public UserUI(UserManager userManager, String username) {
+    public UserUI(UserManager userManager, String username, String password) {
         this.userManager = userManager;
         this.username = username;
+        this.password = password;
 
         userFrame = new JFrame("User Panel");
         userFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        userFrame.setSize(400, 200);
-        userFrame.setLayout(new BorderLayout());
+        userFrame.setSize(400, 300);
+        userFrame.setLayout(null);
 
-        JPanel buttonPanel = new JPanel(new GridLayout(2, 1));
+        JLabel welcomeLabel = new JLabel("Welcome, " + username);
+        welcomeLabel.setBounds(10, 10, 300, 25);
+        userFrame.add(welcomeLabel);
 
-        // Смена пароля пользователя
+
         JButton changePasswordButton = new JButton("Change Password");
+        changePasswordButton.setBounds(10, 50, 150, 25);
+        userFrame.add(changePasswordButton);
         changePasswordButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String oldPassword = JOptionPane.showInputDialog("Enter old password:");
-                String newPassword = JOptionPane.showInputDialog("Enter new password:");
-                String confirmPassword = JOptionPane.showInputDialog("Confirm new password:");
+                JPasswordField oldPasswordField = new JPasswordField();
+                JPasswordField newPasswordField = new JPasswordField();
+                JPasswordField confirmPasswordField = new JPasswordField();
+                Object[] message = {
+                        "Enter old password:", oldPasswordField,
+                        "Enter new password:", newPasswordField,
+                        "Confirm new password:", confirmPasswordField
+                };
 
-                User user = userManager.getUser(username);
-                if (user.getPassword().equals(oldPassword)) {
-                    if (newPassword.equals(confirmPassword)) {
-                        if (user.isPasswordValid(newPassword)) {
+                int option = JOptionPane.showConfirmDialog(null, message, "Change Password", JOptionPane.OK_CANCEL_OPTION);
+                if (option == JOptionPane.OK_OPTION) {
+                    String oldPassword = new String(oldPasswordField.getPassword());
+                    String newPassword = new String(newPasswordField.getPassword());
+                    String confirmPassword = new String(confirmPasswordField.getPassword());
+
+                    if (oldPassword.equals(password)) {
+                        if (newPassword.equals(confirmPassword)) {
                             userManager.changeUserPassword(username, newPassword);
                             JOptionPane.showMessageDialog(userFrame, "Password changed successfully!");
                         } else {
-                            JOptionPane.showMessageDialog(userFrame, "Password does not meet the restrictions!");
+                            JOptionPane.showMessageDialog(userFrame, "New passwords do not match!");
                         }
                     } else {
-                        JOptionPane.showMessageDialog(userFrame, "Passwords do not match!");
+                        JOptionPane.showMessageDialog(userFrame, "Old password is incorrect!");
                     }
-                } else {
-                    JOptionPane.showMessageDialog(userFrame, "Old password is incorrect!");
                 }
             }
         });
 
-        // Завершение работы
+
         JButton exitButton = new JButton("Exit");
+        exitButton.setBounds(10, 90, 150, 25);
+        userFrame.add(exitButton);
         exitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -55,10 +69,6 @@ public class UserUI {
             }
         });
 
-        buttonPanel.add(changePasswordButton);
-        buttonPanel.add(exitButton);
-
-        userFrame.add(buttonPanel, BorderLayout.CENTER);
         userFrame.setVisible(true);
     }
 }

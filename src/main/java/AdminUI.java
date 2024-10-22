@@ -21,30 +21,41 @@ public class AdminUI {
 
         JPanel buttonPanel = new JPanel(new GridLayout(7, 1));
 
-        // Смена пароля администратора
         JButton changeAdminPasswordButton = new JButton("Change Admin Password");
         changeAdminPasswordButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String oldPassword = JOptionPane.showInputDialog("Enter old password:");
-                String newPassword = JOptionPane.showInputDialog("Enter new password:");
-                String confirmPassword = JOptionPane.showInputDialog("Confirm new password:");
+                JPasswordField oldPasswordField = new JPasswordField();
+                JPasswordField newPasswordField = new JPasswordField();
+                JPasswordField confirmPasswordField = new JPasswordField();
+                Object[] message = {
+                        "Enter old password:", oldPasswordField,
+                        "Enter new password:", newPasswordField,
+                        "Confirm new password:", confirmPasswordField
+                };
 
-                User admin = userManager.getUser("ADMIN");
-                if (admin.getPassword().equals(oldPassword)) {
-                    if (newPassword.equals(confirmPassword)) {
-                        userManager.changeUserPassword("ADMIN", newPassword);
-                        JOptionPane.showMessageDialog(adminFrame, "Password changed successfully!");
+                int option = JOptionPane.showConfirmDialog(null, message, "Change Admin Password", JOptionPane.OK_CANCEL_OPTION);
+                if (option == JOptionPane.OK_OPTION) {
+                    String oldPassword = new String(oldPasswordField.getPassword());
+                    String newPassword = new String(newPasswordField.getPassword());
+                    String confirmPassword = new String(confirmPasswordField.getPassword());
+
+                    User admin = userManager.getUser("ADMIN");
+                    if (admin.getPassword().equals(oldPassword)) {
+                        if (newPassword.equals(confirmPassword)) {
+                            userManager.changeUserPassword("ADMIN", newPassword);
+                            JOptionPane.showMessageDialog(adminFrame, "Password changed successfully!");
+                        } else {
+                            JOptionPane.showMessageDialog(adminFrame, "Passwords do not match!");
+                        }
                     } else {
-                        JOptionPane.showMessageDialog(adminFrame, "Passwords do not match!");
+                        JOptionPane.showMessageDialog(adminFrame, "Old password is incorrect!");
                     }
-                } else {
-                    JOptionPane.showMessageDialog(adminFrame, "Old password is incorrect!");
                 }
             }
         });
 
-        // Добавление пользователя
+
         JButton addUserButton = new JButton("Add New User");
         addUserButton.addActionListener(new ActionListener() {
             @Override
@@ -60,7 +71,7 @@ public class AdminUI {
             }
         });
 
-        // Блокировка пользователя
+
         JButton blockUserButton = new JButton("Block User");
         blockUserButton.addActionListener(new ActionListener() {
             @Override
@@ -77,7 +88,7 @@ public class AdminUI {
             }
         });
 
-        // Разблокировка пользователя
+
         JButton unblockUserButton = new JButton("Unblock User");
         unblockUserButton.addActionListener(new ActionListener() {
             @Override
@@ -94,7 +105,7 @@ public class AdminUI {
             }
         });
 
-        // Включение/отключение ограничений пароля
+
         JButton togglePasswordRestrictionsButton = new JButton("Toggle Password Restrictions");
         togglePasswordRestrictionsButton.addActionListener(new ActionListener() {
             @Override
@@ -112,7 +123,7 @@ public class AdminUI {
             }
         });
 
-        // Завершение работы
+
         JButton exitButton = new JButton("Exit");
         exitButton.addActionListener(new ActionListener() {
             @Override

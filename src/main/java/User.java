@@ -53,11 +53,11 @@ public class User {
         if (!hasPasswordRestrictions) {
             return true;
         }
-        // Проверка на отсутствие повторяющихся символов
+
         Set<Character> uniqueChars = new HashSet<>();
         for (char c : newPassword.toCharArray()) {
             if (!uniqueChars.add(c)) {
-                return false; // Есть повторяющиеся символы
+                return false;
             }
         }
         return true;
